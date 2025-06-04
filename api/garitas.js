@@ -1,5 +1,5 @@
-import cheerio from "cheerio";
-import fetch from "node-fetch";
+const cheerio = require('cheerio');
+const fetch = require('node-fetch');
 
 const GARITAS = [
   {
@@ -12,8 +12,7 @@ const GARITAS = [
   }
 ];
 
-// Vercel requiere exportar una función por default
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   try {
     const resultados = [];
 
@@ -36,4 +35,4 @@ export default async function handler(req, res) {
       detalle: error.message
     });
   }
-}
+};
