@@ -1,42 +1,35 @@
-import fetch from 'node-fetch';
-import * as cheerio from 'cheerio';
+const cheerio = require('cheerio');
+const fetch = require('node-fetch');
 
-export default async function handler(req, res) {
+const GARITAS = [
+  {
+    nombre: "San Ysidro",
+    url: 'https://bwt.cbp.gov/details/09250601/POV'
+  },
+  {
+    nombre: "Otay Mesa",
+    url: 'https://bwt.cbp.gov/details/250601/POV'
+  }
+];
+
+module.exports = async (req, res) => {
   try {
-    const urls = [
-      {
-        nombre: "San Ysidro",
-        url: "https://bwt.cbp.gov/details/250401/traffic"
-      },
-      {
-        nombre: "Otay",
-        url: "https://bwt.cbp.gov/details/250601/traffic"
-      }
-    ];
+    const resultados = [];
 
-    const resultados = {};
-
-    for (const garita of urls) {
+    for (const garita of GARITAS) {
       const response = await fetch(garita.url);
       const html = await response.text();
       const $ = cheerio.load(html);
+      const waitTime = $('.curr-wait').first().text().trim();
 
-      let datos = {};
-
-      // Buscar tabla con clase 'traffic-table'
-      $('table.traffic-table tbody tr').each((i, el) => {
-        const tipo = $(el).find('td').eq(0).text().trim();
-        const tiempo = $(el).find('td').eq(1).text().trim();
-        if (tipo && tiempo) {
-          datos[tipo] = tiempo;
-        }
+      resultados.push({
+        garita: garita.nombre,
+        tiempo_espera: waitTime ? `${waitTime} min` : "No disponible"
       });
-
-      resultados[garita.nombre] = datos;
     }
 
-    res.status(200).json({ ok: true, resultados });
-  } catch (err) {
-    res.status(500).json({ ok: false, error: err.toString() });
+    res.status(200).json(resultados);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener los tiempos de espera', detalle: error.message });
   }
-}
+};
