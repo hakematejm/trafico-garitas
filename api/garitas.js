@@ -1,38 +1,29 @@
-const cheerio = require('cheerio');
-const fetch = require('node-fetch');
+import puppeteer from 'puppeteer';
 
-const GARITAS = [
-  {
-    nombre: "San Ysidro",
-    url: "https://bwt.cbp.gov/details/09250601/POV"
-  },
-  {
-    nombre: "Otay Mesa",
-    url: "https://bwt.cbp.gov/details/250601/POV"
-  }
-];
-
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
-    const resultados = [];
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    const page = await browser.newPage();
 
-    for (const garita of GARITAS) {
-      const response = await fetch(garita.url);
-      const html = await response.text();
-      const $ = cheerio.load(html);
-      const waitTime = $(".curr-wait").first().text().trim();
+    await page.goto('https://bwt.cbp.gov/details/250601/POV', {
+      waitUntil: 'networkidle2',
+      timeout: 60000
+    });
 
-      resultados.push({
-        garita: garita.nombre,
-        tiempo_espera: waitTime ? `${waitTime} min` : "No disponible"
-      });
-    }
+    const waitTime = await page.$eval('.curr-wait', el => el.innerText);
 
-    res.status(200).json(resultados);
+    await browser.close();
+
+    res.status(200).json({
+      garita: 'Otay',
+      tiempo_espera: waitTime
+    });
   } catch (error) {
     res.status(500).json({
-      error: "Error al obtener los tiempos de espera",
+      error: 'Error al obtener el tiempo de espera',
       detalle: error.message
     });
   }
-};
+}
