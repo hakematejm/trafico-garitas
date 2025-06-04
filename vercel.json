@@ -1,6 +1,9 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/garita.js", "use": "@vercel/node" }
+    { "src": "api/garitas.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/garitas", "dest": "api/garitas.js" }
   ]
 }
