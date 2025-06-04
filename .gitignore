@@ -1,0 +1,7 @@
+# Ignorar la clave privada
+serviceAccountKey.json
+
+# Ignorar dependencias y build temporales
+node_modules
+.env
+.DS_Store
