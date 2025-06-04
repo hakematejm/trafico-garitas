@@ -1,9 +1,15 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/garitas.js", "use": "@vercel/node" }
+    {
+      "src": "api/scrape.js",
+      "use": "@vercel/node"
+    }
   ],
   "routes": [
-    { "src": "/api/garitas", "dest": "api/garitas.js" }
+    {
+      "src": "/scrape",
+      "dest": "api/scrape.js"
+    }
   ]
 }
