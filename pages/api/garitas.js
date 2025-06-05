@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       timeout: 60000
     });
 
-    const waitTime = await page.$eval('.curr-wait', el => el.innerText);
+    const waitTime = await page.$eval('.curr-wait', el => el?.innerText?.trim() || 'No disponible');
 
     await browser.close();
 
@@ -21,6 +21,8 @@ export default async function handler(req, res) {
       tiempo_espera: waitTime
     });
   } catch (error) {
+    console.error("❌ Error scraping garita:", error);
+
     res.status(500).json({
       error: 'Error al obtener el tiempo de espera',
       detalle: error.message
