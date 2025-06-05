@@ -12,7 +12,7 @@
       "dest": "api/scrape.js"
     }
   ],
-  "cron": [
+  "crons": [
     {
       "path": "/scrape",
       "schedule": "*/5 * * * *"
