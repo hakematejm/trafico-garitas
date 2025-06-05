@@ -1,45 +1,44 @@
 import puppeteer from 'puppeteer';
 import admin from 'firebase-admin';
-import path from 'path';
-import { readFileSync } from 'fs';
+import serviceAccount from '../../serviceAccountKey.json';
 
-const serviceAccountPath = path.resolve(process.cwd(), 'serviceAccountKey.json');
-const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
-
-// Inicializar Firebase una sola vez
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount),
   });
 }
-
 const db = admin.firestore();
 
 export default async function handler(req, res) {
   try {
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    const page = await browser.newPage();
+    console.log('✅ Cron ejecutado');
 
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
+
+    const page = await browser.newPage();
     await page.goto('https://bwt.cbp.gov/details/250601/POV', {
       waitUntil: 'networkidle2',
-      timeout: 60000
+      timeout: 60000,
     });
 
-    const tiempo = await page.$eval('.curr-wait', el => el.innerText);
-
-    await db.collection('cruces').add({
-      garita: 'Otay',
-      tiempo_espera: tiempo,
-      timestamp: admin.firestore.Timestamp.now()
-    });
+    const tiempo = await page.$eval('.curr-wait', (el) => el?.innerText || 'No disponible');
 
     await browser.close();
 
-    res.status(200).json({ garita: 'Otay', tiempo_espera: tiempo });
+    const data = {
+      garita: 'Otay',
+      tiempo_espera: tiempo,
+      timestamp: new Date(),
+    };
+
+    await db.collection('tiempos_garitas').add(data);
+    console.log('📥 Datos guardados en Firebase:', data);
+
+    res.status(200).json({ status: 'ok', data });
   } catch (error) {
-    console.error('❌ Error:', error.message);
-    res.status(500).json({ error: 'Error al obtener o guardar tiempo de espera' });
+    console.error('❌ Error en el cron:', error.message);
+    res.status(500).json({ error: 'Error al ejecutar el cron', detalle: error.message });
   }
 }
