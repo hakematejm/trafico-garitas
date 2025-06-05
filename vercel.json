@@ -2,19 +2,19 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/scrape.js",
+      "src": "pages/api/scraper.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/scrape",
-      "dest": "api/scrape.js"
+      "src": "/api/scraper",
+      "dest": "pages/api/scraper.js"
     }
   ],
   "crons": [
     {
-      "path": "/scrape",
+      "path": "/api/scraper",
       "schedule": "*/5 * * * *"
     }
   ]
