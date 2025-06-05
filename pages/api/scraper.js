@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
 import admin from 'firebase-admin';
-import serviceAccount from '../../serviceAccountKey.json';
+import serviceAccount from '../../../serviceAccountKey.json'; // Ajusta esta ruta según ubicación real
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -24,7 +24,6 @@ export default async function handler(req, res) {
     });
 
     const tiempo = await page.$eval('.curr-wait', (el) => el?.innerText || 'No disponible');
-
     await browser.close();
 
     const data = {
@@ -34,11 +33,11 @@ export default async function handler(req, res) {
     };
 
     await db.collection('tiempos_garitas').add(data);
-    console.log('📥 Datos guardados en Firebase:', data);
 
+    console.log('📥 Datos guardados:', data);
     res.status(200).json({ status: 'ok', data });
   } catch (error) {
-    console.error('❌ Error en el cron:', error.message);
-    res.status(500).json({ error: 'Error al ejecutar el cron', detalle: error.message });
+    console.error('❌ Error:', error.message);
+    res.status(500).json({ error: 'Error ejecutando scraper', detalle: error.message });
   }
 }
