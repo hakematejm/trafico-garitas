@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "api/garitas.js": {
+      "memory": 512,
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/garitas",
+      "schedule": "0 * * * *"
+    }
+  ]
+}
