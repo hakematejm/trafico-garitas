@@ -7,9 +7,10 @@
     "start": "next start"
   },
   "dependencies": {
-    "firebase-admin": "^11.0.0",
+    "axios": "^1.9.0",
+    "firebase-admin": "^11.11.1",
     "next": "^13.0.0",
-    "puppeteer": "^21.0.0",
+    "puppeteer": "^21.11.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   }

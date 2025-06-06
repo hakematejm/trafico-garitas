@@ -1,31 +1,20 @@
-import puppeteer from 'puppeteer';
-
 export default async function handler(req, res) {
+  const baseUrl = req.headers.host.startsWith('localhost')
+    ? 'http://localhost:3000'
+    : `https://${req.headers.host}`;
+
   try {
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    const page = await browser.newPage();
-
-    await page.goto('https://bwt.cbp.gov/details/250601/POV', {
-      waitUntil: 'networkidle2',
-      timeout: 60000
-    });
-
-    const waitTime = await page.$eval('.curr-wait', el => el?.innerText?.trim() || 'No disponible');
-
-    await browser.close();
+    const [otayRes, sydRes] = await Promise.all([
+      fetch(`${baseUrl}/api/otay`).then(r => r.json()),
+      fetch(`${baseUrl}/api/sanysidro`).then(r => r.json())
+    ]);
 
     res.status(200).json({
-      garita: 'Otay',
-      tiempo_espera: waitTime
+      "Otay Mesa": otayRes,
+      "San Ysidro": sydRes
     });
   } catch (error) {
-    console.error("❌ Error scraping garita:", error);
-
-    res.status(500).json({
-      error: 'Error al obtener el tiempo de espera',
-      detalle: error.message
-    });
+    console.error('❌ Error combinando APIs:', error.message);
+    res.status(500).json({ error: 'Error al obtener datos combinados' });
   }
 }
