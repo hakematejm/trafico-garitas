@@ -30,9 +30,8 @@ export default async function handler(req, res) {
       tiempo_espera: waitTime,
       timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
-    console.error('Error scraping:', error.message);
+    console.error('❌ Error scraping:', error.message);
     res.status(500).json({ error: 'Scraping failed', detalle: error.message });
   } finally {
     if (browser) await browser.close();
