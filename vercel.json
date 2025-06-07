@@ -1,14 +1,25 @@
 {
-  "functions": {
-    "api/garitas.js": {
-      "memory": 512,
-      "maxDuration": 60
-    }
-  },
-  "crons": [
+  "version": 2,
+  "builds": [
     {
-      "path": "/api/garitas",
-      "schedule": "0 * * * *"
+      "src": "api/scraper.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/garitas.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    }
+  ],
+  "cron": [
+    {
+      "path": "/api/scraper",
+      "schedule": "0 * * * *" 
     }
   ]
 }
