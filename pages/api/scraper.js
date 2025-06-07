@@ -1,41 +1,42 @@
-// scraper.js
-const puppeteer = require('puppeteer');
-const db = require('../../firebaseAdmin').default; // Ajusta el path según tu estructura
+// pages/api/scraper.js
+import puppeteer from 'puppeteer';
+import admin from 'firebase-admin';
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    }),
+  });
+}
+
+const db = admin.firestore();
 
 const GARITAS = [
   {
     nombre: "San Ysidro",
-    url: "https://bwt.cbp.gov/details/09250601/POV"
+    url: "https://bwt.cbp.gov/details/09250601/POV",
   },
   {
     nombre: "Otay Mesa",
-    url: "https://bwt.cbp.gov/details/250601/POV"
-  }
+    url: "https://bwt.cbp.gov/details/250601/POV",
+  },
 ];
 
-(async () => {
-  const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-  const page = await browser.newPage();
+export default async function handler(req, res) {
+  try {
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
 
-  const resultados = [];
+    const page = await browser.newPage();
+    const resultados = [];
 
-  for (const garita of GARITAS) {
-    try {
-      await page.goto(garita.url, { waitUntil: "networkidle2", timeout: 60000 });
-      await page.waitForSelector('.curr-wait', { timeout: 60000 });
-
-      const exists = await page.$('.curr-wait');
-      if (!exists) {
-        console.log(`[${garita.nombre}] Selector .curr-wait NO encontrado`);
-        continue;
-      }
-
+    for (const garita of GARITAS) {
+      await page.goto(garita.url, { waitUntil: 'networkidle2', timeout: 60000 });
       const tiempo = await page.$eval('.curr-wait', el => el.innerText.trim());
-
-      if (!tiempo || tiempo === '') {
-        console.log(`[${garita.nombre}] Tiempo no válido`);
-        continue;
-      }
 
       const data = {
         garita: garita.nombre,
@@ -44,20 +45,14 @@ const GARITAS = [
       };
 
       resultados.push(data);
-
-      try {
-        await db.collection('tiempos_garitas').add(data);
-        console.log(`[${garita.nombre}] Datos guardados en Firestore.`);
-      } catch (e) {
-        console.error(`[${garita.nombre}] ❌ Error al guardar en Firestore:`, e.message);
-      }
-
-    } catch (err) {
-      console.error(`[${garita.nombre}] ❌ Error en scraping:`, err.message);
+      await db.collection('tiempos_garitas').add(data);
     }
+
+    await browser.close();
+    res.status(200).json({ status: '✅ Datos guardados', resultados });
+
+  } catch (error) {
+    console.error('❌ Error en el scraping:', error);
+    res.status(500).json({ error: error.message });
   }
-
-  await browser.close();
-
-  console.log('✅ Resultados:', resultados);
-})();
+}
