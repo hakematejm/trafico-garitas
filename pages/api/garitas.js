@@ -1,6 +1,11 @@
 // pages/api/garitas.js
 import admin from 'firebase-admin';
-import serviceAccount from '../../../serviceAccountKey.json';
+
+const serviceAccount = {
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+};
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -21,7 +26,6 @@ export default async function handler(req, res) {
   const errores = [];
   const resultados = {};
 
-  // Función para guardar en subcolección
   const guardarDatos = async (garita, datos) => {
     await db.collection(`garitas/${garita}/esperas`).add({
       ...datos,
